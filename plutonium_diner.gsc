@@ -32,12 +32,15 @@ init()
 	level.unlimited_ammo_duration = 30;
 	level thread drawZombiesCounter();
 	level thread onPlayerConnect();
-	level thread setDvars();
     level thread turnonpower();
-    level.zombie_last_stand = ::LastStand;
+	level thread setdvars();
+
+	level.zombie_last_stand = ::LastStand;
 	level.callbackPlayerDamage = ::callbackPlayerDamage;
 	level.custom_vending_precaching = ::default_vending_precaching;
-
+	register_player_damage_callback( ::playerdamagelastcheck );
+	level.effect_WebFX = loadfx("misc/fx_zombie_powerup_solo_grab");
+	replaceFunc("_zm_ai_avogadro", ::precache, ::stop_spawning);
 
     if(isDefined(level._zombiemode_powerup_grab))
     {
@@ -92,9 +95,11 @@ init()
 	precacheshader( "zombies_rank_2" );
 	precacheshader( "zombies_rank_4" );
 	precacheshader( "menu_mp_weapons_xm8" );
+    precacheshader( "perks_drank" );
 	precacheshader( "killiconheadshot" );
 	precacheshader( "zombies_rank_5" );
 	precacheshader( "hud_icon_sticky_grenade" );
+    precacheshader( "total_shots" );
 	precacheshader( "menu_mp_weapons_1911" );
 	precachemodel( "zombie_vending_marathon_on" );
 	precachemodel( "zombie_vending_doubletap2_on" );
@@ -108,20 +113,16 @@ init()
 	precachemodel( "t5_foliage_tree_burnt03" );
 	precachemodel( "collision_geo_256x256x10_standard" );
 	precachemodel( "zombie_teddybear" );
+	precachemodel( "zombie_perk_bottle_jugg" );
 	precachemodel( "veh_t6_civ_bus_zombie" );
+	precachemodel( "p6_zm_keycard" );
 	precachemodel( "veh_t6_civ_bus_zombie_roof_hatch" );
 	precachemodel( "zombie_z_money_icon" );
 	precachemodel( "veh_t6_civ_movingtrk_cab_dead" );
 }
 
-setDvars()
+setdvars()
 {
-	setdvar( "party_connectToOthers", "0" );
-	setdvar( "partyMigrate_disabled", "1" );
-	setdvar( "party_mergingEnabled", "0" );
-	setdvar( "party_iamhost", "1" );
-	setdvar( "party_host", "1" );
-	setdvar( "allowAllNAT", "1" );
 	setdvar( "magic_chest_movable", "0" );
 	setDvar( "scr_screecher_ignore_player", 1 );
 }
@@ -132,14 +133,14 @@ onPlayerConnect()
     {
         level waittill("connected", player);
         player thread onPlayerSpawned();
-        player thread visuals();
+        //player thread visuals();
 		setdvar( "ui_errorMessage", "^9Thank you for playing this Custom Survival Map");
 		setdvar( "ui_errorTitle", "^1Diner" );
 
     }
 }
 
-visuals()
+/*visuals()
 {
 	self setClientDvar("r_fog", 0);
 	self setClientDvar("r_dof_enable", 0);
@@ -149,7 +150,7 @@ visuals()
 	self setClientDvar("r_lodScaleSkinned", 1);
 	self useservervisionset(1);
 	self setvisionsetforplayer("remote_mortar_enhanced", 0);
-}
+}*/
 
 onPlayerSpawned()
 {
@@ -162,6 +163,7 @@ onPlayerSpawned()
 		{
 			if(self.is_First_Spawn)
 			{
+				self.score = 30000;
 
 				self.is_custom_round = 0;
 				self.perk_reminder = 0;
@@ -225,56 +227,44 @@ displayScore()
     }
 }
 
-ww_damage()
+ww_points( player )
 {
-	self dodamage( 50, self.origin, self, self, "none" );
-	WebFX=loadfx("misc/fx_zombie_powerup_solo_grab");
-    PlayFXOnTag(WebFX,self,"j_spineupper");
-	wait 1;
-	self dodamage( 50, self.origin, self, self, "none" );
-	WebFX=loadfx("misc/fx_zombie_powerup_solo_grab");
-    PlayFXOnTag(WebFX,self,"j_spineupper");
-	wait 1;
-	self dodamage( 50, self.origin, self, self, "none" );
-	WebFX=loadfx("misc/fx_zombie_powerup_solo_grab");
-    PlayFXOnTag(WebFX,self,"j_spineupper");
+    for(i = 0; i < 3; i++)
+    {
+        player maps/mp/zombies/_zm_score::add_to_player_score( 10 );
+        PlayFXOnTag(level.effect_WebFX,self,"j_spineupper");
+        self doDamage(200, (0, 0, 0));
+        wait 1;
+    }
 }
 
-ww_points()
-{
-	self maps/mp/zombies/_zm_score::add_to_player_score( 10 );
-	wait 1;
-	self maps/mp/zombies/_zm_score::add_to_player_score( 10 );
-	wait 1;
-	self maps/mp/zombies/_zm_score::add_to_player_score( 10 );
+playerdamagelastcheck( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime ){
+    if(self.has_wine)
+	{
+          if(isDefined( eAttacker.is_zombie ) && eattacker.is_zombie )
+		  {
+            zombies = getaiarray(level.zombie_team);
+            grenades = self get_player_lethal_grenade();
+            grenade_count = self getweaponammoclip(grenades);
+            if(grenade_count > 0){
+                self setweaponammoclip(grenades, (grenade_count - 1));
+                foreach(zombie in zombies){
+                    if(distance(zombie.origin, self.origin) < 400)
+					{
+                        zombie thread ww_points( self );
+                        self PlaySound("zmb_elec_jib_zombie");
+                        zombie maps/mp/zombies/_zm_utility::set_zombie_run_cycle("walk");
+                        //find zombie motion slowdown
+                    }
+                }
+            }
+        }
+    }
+    return idamage;
 }
 
 callbackPlayerDamage( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime, boneindex )
 {
-	if(self.has_wine) 
-	{
-  		if( isDefined( eAttacker.is_zombie ) && eAttacker.is_zombie )
-		{
-			zombies = getaiarray(level.zombie_team);
-        	foreach(zombie in zombies)
-        	{
-	   			if(distance(self.origin, zombie.origin) < 150)
-        		{
-					grenades = self get_player_lethal_grenade();
-            		grenade_count = self getweaponammoclip(grenades);
-            		if(grenade_count > 0)
-					{
-						//find zombie motion slowdown
-						self PlaySound("zmb_elec_jib_zombie");
-               			zombie maps/mp/zombies/_zm_utility::set_zombie_run_cycle("walk");
-                		self setweaponammoclip(grenades, (grenade_count - 1));
-						zombie thread ww_damage();
-						self thread ww_points();
-					}
-            	}
-        	}
-		}
-	}
 	if(self.is_custom_round) 
 	{
 		if(level.round_number > 6)
@@ -424,11 +414,11 @@ custom_round_monitor()
 voice()
 {
 	wait 12;
-	self thread power_up_hud(0,"Fetch me their souls!");
+	self thread hint_text_string("Fetch me their souls!");
 	self thread playleaderdialogonplayer( "dogstart", self.team, 5 );
 }
 
-remodel_and_speed() //remodel_and_speed
+remodel_and_speed() 
 {
 	self endon("disconnect");
 	self endon("custom_round_over");
@@ -438,8 +428,8 @@ remodel_and_speed() //remodel_and_speed
 		if(!isDefined(zombie.remodeled) && !zombie.is_avogadro) 
 		{
 			zombie setModel( "c_zom_screecher_fb" );
+			zombie maps/mp/zombies/_zm_utility::set_zombie_run_cycle( "super_sprint" ); 
 		}
-		zombie maps/mp/zombies/_zm_utility::set_zombie_run_cycle( "super_sprint" ); 
 	wait 0.5;
 	}
 }
@@ -582,6 +572,7 @@ turnonpower()
 	level maps\mp\zombies\_zm_game_module::turn_power_on_and_open_doors();
 }
 
+
 stopbus()
 {
 	wait 10;
@@ -708,8 +699,8 @@ init_custom_map()
     collision( "script_model", ( -4204.1, -5885, -69.34 ), "zombie_vending_tombstone_on", ( 0, -35, 0 ), "3gun" );
     collision( "script_model", ( -3545.1, -7220, -59.5062 ), "p6_anim_zm_buildable_pap_on", ( 0, 315, 0 ), "pap" );
 	pile_of_emp( "emp_grenade_zm", ( -4758.28, -7777.5, -18.062 ), ( 0, 15, 90 ));
-	wallweapons( "emp_grenade_zm", ( -4758.28, -7782, -16.162 ), ( 0, 45, 0 ), 750 );
-	wallweapons( "cymbal_monkey_zm", ( -4760.28, -7860, -20.162 ), ( 0, 290, 0 ), 750 );
+	wallweapons( "emp_grenade_zm", ( -4758.28, -7782, -16.162 ), ( 0, 45, 0 ), 1000 );
+	wallweapons( "cymbal_monkey_zm", ( -4760.28, -7860, -20.162 ), ( 0, 290, 0 ), 4000 );
 	wallweapons( "claymore_zm", ( -5150.28, -7808, -11.162 ), ( 90, 45, 0 ), 1000 );
     wallweapons2( "bowie_knife_zm", ( -5439.01, -7773, -13.002 ), ( 0, 225, 0 ), 3000 );
     shootable( ( -4690.28, -7282, -63.5062 ), (0, 180, 0) );
@@ -1657,6 +1648,8 @@ start_vt()
 		if (self getcurrentweapon() == "riotshield_zm" )
 		{
 			self enableInvulnerability();
+			self.shielddamagetaken += 100;
+            wait 0.9;
 		}
 		else
 		{
@@ -1685,20 +1678,39 @@ start_ec()
 
 start_er()
 {
-	level endon("end_game");
-	self endon("disconnect");
-	self endon("stopcustomperk");
-	for(;;)
-	{
-		if (self.has_razor && self ismeleeing() && self.health <= 199)
-		{
-			self enableInvulnerability();
-			RadiusDamage(self.origin, 10, 20, 10, self);
-			self.health += 3;
-			self disableInvulnerability();
-		}
-		wait 0.05;
-	}
+    level endon("end_game");
+    self endon("disconnect");
+    self endon("stopcustomperk");
+    for(;;)
+    {
+        if (self.has_razor && self ismeleeing())
+        {
+            zombies = getaiarray( level.zombie_team );
+            foreach( zombie in zombies )
+			{
+                if( distance( self.origin, zombie.origin ) <= 90 )
+				{
+                    zombie dodamage(500, (0, 0, 0));//if you want you can make like damage in percent
+                    if(zombie.health <= 0)
+					{
+                        self maps/mp/zombies/_zm_score::add_to_player_score( 100 );
+                    } 
+					else 
+					{
+                        self maps/mp/zombies/_zm_score::add_to_player_score( 10 );
+                    }
+                } 
+            }
+            self.health += 10;
+            if(self.health > self.maxhealth){
+                self.health = self.maxhealth;
+            }
+            while(self ismeleeing()){
+                wait 0.1;
+            }
+        }
+        wait 0.05;
+    }
 }
 
 doGivePerk(perk)
@@ -1800,41 +1812,37 @@ spawnentity( class, model, origin, angle )
 
 wallweaponmonitorbox( weapon, cost )
 {
-	self endon( "game_ended" );
-	self.curweap = weapon;
-	self.weapx = get_weapon_display_name( self.curweap );
-	self.cost = cost;
-	self.lockedweap = 0;
-	while( 1 )
-	{
-		foreach( player in level.players )
-		{
-			if( distance( self.origin, player.origin ) <= 60 )
-			{
-				player thread machine_hint("Hold [{+usereload}] For Buy " + ( self.weapx + ( " [Cost: " + ( self.cost + "]") ) ) );
-				wait 0.3;
-				if( player usebuttonpressed() && !(self.lockedweap) && player.score >= self.cost && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
-				{
-					player playsound( "zmb_cha_ching" );
-					self.lockedweap = 1;
-					player.score -= self.cost;
-					player thread weapon_give( self.curweap, 0, 1 );
-					player iprintln( "^2" + ( self.weapx + " Buy" ) );
+    self endon( "game_ended" );
+    self.curweap = weapon;
+    self.weapx = get_weapon_display_name( self.curweap );
+    self.cost = cost;
+    while( 1 )
+    {
+        foreach( player in level.players )
+        {
+            if( distance( self.origin, player.origin ) <= 55 )
+            {
+                player thread machine_hint("Hold [{+usereload}] For Buy " + ( self.weapx + ( " [Cost: " + ( self.cost + "]") ) ) );
+                wait 0.3;
+                if( player usebuttonpressed() && !(player hasWeapon(self.curweap)) && player.score >= self.cost && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
+                {
+                    player playsound( "zmb_cha_ching" );
+                    player.score -= self.cost;
+                    player thread weapon_give( self.curweap, 0, 1 );
+                    player iprintln( "^2" + ( self.weapx + " Buy" ) );
                     wait 3;
-                    self.lockedweap = 0;
-				}
-				else
-				{
-					if( player usebuttonpressed() && player.score < self.cost )
-					{
-						player maps/mp/zombies/_zm_audio::create_and_play_dialog( "general", "no_money_weapon" );
-					}
-				}
-			}
-		}
-		wait 0.1;
-	}
-
+                }
+                else
+                {
+                    if( player usebuttonpressed() && player.score < self.cost )
+                    {
+                        player maps/mp/zombies/_zm_audio::create_and_play_dialog( "general", "no_money_weapon" );
+                    }
+                }
+            }
+        }
+        wait 0.1;
+    }
 }
 
 wallweaponmonitorbox2( weapon, cost )
@@ -1883,7 +1891,7 @@ custom_powerup_grab(s_powerup, e_player)
 	{
         foreach( player in level.players )
         {
-    		player thread power_up_hud(0, "Zombie Cash!" );
+    		player thread hint_text_string( "Zombie Cash!" );
             player.score += (100 * randomIntRange(-11, 21));
             if(player.score < 0)
 			{
@@ -1991,6 +1999,31 @@ machine_string()
 	wait .5;
 	wait 0.25;
 	self destroy();
+}
+
+hint_text_string(text)
+{
+	self endon("disconnect");
+	move_text_string = newclienthudelem(self);
+	move_text_string.elemtype = "font";
+	move_text_string.font = "objective";
+	move_text_string.fontscale = 2;
+	move_text_string.x = 0;
+	move_text_string.y = 0;
+	move_text_string.width = 0;
+	move_text_string.height = int( level.fontheight * 2 );
+	move_text_string.xoffset = 0;
+	move_text_string.yoffset = 0;
+	move_text_string.children = [];
+	move_text_string setparent(level.uiparent);
+	move_text_string.hidden = 0;
+	move_text_string maps/mp/gametypes_zm/_hud_util::setpoint("TOP", undefined, 0, level.zombie_vars["zombie_timer_offset"] - (level.zombie_vars["zombie_timer_offset_interval"] * 2));
+	move_text_string.sort = .5;
+	move_text_string.alpha = 0;
+	move_text_string fadeovertime(.5);
+	move_text_string.alpha = 1;
+	move_text_string setText(text);
+	move_text_string thread string_move();
 }
 
 power_up_hud(shader, text)
@@ -2134,7 +2167,7 @@ enable_aim_assist()
 	level endon("game_ended");
 	flag_wait( "start_zombie_round_logic" );
 	wait 5;
-	iprintln("^7press ^1[{+smoke}] ^7and ^1[{+frag}] ^7to Enable/Disable controller aim assist ");
+	self iprintln("^7press ^1[{+smoke}] ^7and ^1[{+frag}] ^7to Enable/Disable controller aim assist ");
 	for(;;)
 	{
 		if(!self.aim_assist_on && self secondaryoffhandbuttonpressed() && self FragButtonPressed())
@@ -2144,7 +2177,7 @@ enable_aim_assist()
 			x = 240;
         	self.aim_assist_back_icon = self drawshader( "specialty_marathon_zombies", x, 400, 25, 25, (0, 0, 0), 100, 0 );
 			self.aim_assist_front_icon = self drawshader( "killiconheadshot", x, 400, 24, 24, (1, 1, 1), 100, 0 );
-			iprintln("Controller aim assist: ^2Enabled");
+			self iprintln("Controller aim assist: ^2Enabled");
 			wait 3;
 		}
 		if(self.aim_assist_on && self secondaryoffhandbuttonpressed() && self FragButtonPressed())
@@ -2154,10 +2187,14 @@ enable_aim_assist()
 			self.aim_assist_back_icon = undefined;
     		self.aim_assist_front_icon destroy();
 			self.aim_assist_front_icon = undefined;
-			iprintln("Controller aim assist: ^1Disabled");
+			self iprintln("Controller aim assist: ^1Disabled");
 			self.aim_assist_on = 0;
 			wait 3;
 		}
 	wait 0.05;
 	}
+}
+
+stop_spawning()
+{
 }

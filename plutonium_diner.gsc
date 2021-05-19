@@ -92,11 +92,9 @@ init()
 	precacheshader( "zombies_rank_2" );
 	precacheshader( "zombies_rank_4" );
 	precacheshader( "menu_mp_weapons_xm8" );
-    precacheshader( "perks_drank" );
 	precacheshader( "killiconheadshot" );
 	precacheshader( "zombies_rank_5" );
 	precacheshader( "hud_icon_sticky_grenade" );
-    precacheshader( "total_shots" );
 	precacheshader( "menu_mp_weapons_1911" );
 	precachemodel( "zombie_vending_marathon_on" );
 	precachemodel( "zombie_vending_doubletap2_on" );
@@ -110,9 +108,7 @@ init()
 	precachemodel( "t5_foliage_tree_burnt03" );
 	precachemodel( "collision_geo_256x256x10_standard" );
 	precachemodel( "zombie_teddybear" );
-	precachemodel( "zombie_perk_bottle_jugg" );
 	precachemodel( "veh_t6_civ_bus_zombie" );
-	precachemodel( "p6_zm_keycard" );
 	precachemodel( "veh_t6_civ_bus_zombie_roof_hatch" );
 	precachemodel( "zombie_z_money_icon" );
 	precachemodel( "veh_t6_civ_movingtrk_cab_dead" );

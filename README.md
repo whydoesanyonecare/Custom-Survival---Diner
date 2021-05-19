@@ -5,3 +5,6 @@
 -custom rounds
 
 -shootable easteregg
+
+
+(only tested in solo)

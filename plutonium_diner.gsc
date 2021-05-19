@@ -729,7 +729,7 @@ init_custom_map()
 	collision( "script_model", ( -4173.1, -7750.29, -62.5062 ), "zombie_vending_doubletap2_on", ( 0, 270, 0 ), "DTP" );
 	collision( "script_model", ( -5050.28, -7788, -62.5062 ), "zombie_vending_revive_on", ( 0, 180, 0 ), "revive" );
 	collision( "script_model", ( -6500.28, -7930, 0.5062 ), "zombie_vending_marathon_on", ( 0, 90, 0 ), "marathon" );
-	collision( "script_model", ( -3810.1, -7220, -59.5062 ), "zombie_vending_tombstone_on", ( 0, 270, 0 ), "tomb" ); //respawn might crash like on ps3 | unstested
+	collision( "script_model", ( -3810.1, -7220, -59.5062 ), "zombie_vending_tombstone_on", ( 0, 270, 0 ), "tomb" ); 
     collision( "script_model", ( -5151.1, -5410, -63.875 ), "zombie_vending_tombstone_on", ( 0, -45, 0 ), "cherry" );
     collision( "script_model", ( -5440.1, -7884, -59.875 ), "zombie_vending_tombstone_on", ( 0, 90, 0 ), "widowswine" );
     collision( "script_model", ( -5912.1, -7355, -63.875 ), "zombie_vending_tombstone_on", ( 0, 180, 0 ), "ER" );
@@ -1592,7 +1592,7 @@ drawshader_and_shadermove(perk, custom) // made by 2 Millimeter Nahkampfwächter
             break;
         case "WIDOWS_WINE":
             self.perk6back = self drawshader( "specialty_marathon_zombies", x, 350, 24, 24, ( 0, 0, 0 ), 100, 0 );
-            self.perk6front = self drawshader( "zombies_rank_3", x + 1, 350, 23, 23, ( 1, 1, 1 ), 100, 0 );
+            self.perk6front = self drawshader( "zombies_rank_3", x, 350, 23, 23, ( 1, 1, 1 ), 100, 0 );
             self.has_wine = 1;
 			self takeweapon( self get_player_lethal_grenade() );
 			self set_player_lethal_grenade( "sticky_grenade_zm" );
@@ -1602,7 +1602,7 @@ drawshader_and_shadermove(perk, custom) // made by 2 Millimeter Nahkampfwächter
             break;
         case "Ethereal_Razor":
             self.perk7back = self drawshader( "specialty_marathon_zombies", x, 350, 24, 24, ( 200, 0, 0 ), 100, 0 );
-            self.perk7front = self drawshader( "zombies_rank_4", x + 1, 350, 23, 23, ( 1, 1, 1 ), 100, 0 );
+            self.perk7front = self drawshader( "zombies_rank_4", x, 350, 23, 23, ( 1, 1, 1 ), 100, 0 );
             self.has_razor = 1;
 			self thread start_er();
             break;

@@ -162,7 +162,6 @@ onPlayerSpawned()
 		{
 			if(self.is_First_Spawn)
 			{
-				self.score = 30000;
 
 				self.is_custom_round = 0;
 				self.perk_reminder = 0;

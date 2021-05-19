@@ -231,10 +231,48 @@ ww_points( player )
 {
     for(i = 0; i < 3; i++)
     {
+		self maps/mp/zombies/_zm_utility::set_zombie_run_cycle("walk");
         player maps/mp/zombies/_zm_score::add_to_player_score( 10 );
         PlayFXOnTag(level.effect_WebFX,self,"j_spineupper");
         self doDamage(200, (0, 0, 0));
         wait 1;
+    }
+}
+
+ww_nade_explosion()// made by 2 Millimeter Nahkampfwächter 
+{
+    wait 2;
+    if( self maps/mp/zm_transit_lava::object_touching_lava())
+	{
+        self delete();
+        return 0;
+    }
+    zombies = getaiarray(level.zombie_team);
+    foreach( zombie in zombies )
+	{
+        if( distance( zombie.origin, self.origin ) < 250 )
+		{
+            zombie thread ww_points( self );
+        }
+    }
+    self delete();
+}
+
+ww_nades() // made by 2 Millimeter Nahkampfwächter 
+{
+    level endon("end_game");
+    self endon("disconnect");
+    self endon("stopcustomperk");
+    for(;;)
+	{
+        self waittill( "grenade_fire", grenade, weapname );
+        if( weapname == "sticky_grenade_zm" )
+		{
+            ww_nade = spawnsm( grenade.origin, "zombie_bomb" );
+            ww_nade hide();
+            ww_nade linkto( grenade );
+            ww_nade thread ww_nade_explosion();
+        }
     }
 }
 
@@ -249,11 +287,10 @@ playerdamagelastcheck( einflictor, eattacker, idamage, idflags, smeansofdeath, s
             if(grenade_count > 0){
                 self setweaponammoclip(grenades, (grenade_count - 1));
                 foreach(zombie in zombies){
-                    if(distance(zombie.origin, self.origin) < 400)
+                    if(distance(zombie.origin, self.origin) < 150)
 					{
                         zombie thread ww_points( self );
                         self PlaySound("zmb_elec_jib_zombie");
-                        zombie maps/mp/zombies/_zm_utility::set_zombie_run_cycle("walk");
                         //find zombie motion slowdown
                     }
                 }
@@ -1095,6 +1132,7 @@ PHD_Flopper()
 				if( distance( self.origin, player.origin ) <= 60 ) 
 				{
 					player thread machine_hint( "Hold [{+usereload}] For PHD Flopper [Cost : 2000] " );
+                    player thread machine_lower_hint( "Explosion and fall damage ignored also player creates explosion when dive to prone." );
 
 					if( player usebuttonpressed() && !(player.has_phd) && ( player.score >= level.phdcost ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
@@ -1132,6 +1170,7 @@ DownersD()
 				if( distance( self.origin, player.origin ) <= 60 ) 
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Downer's Delight [Cost : 2500] " );
+                    player thread machine_lower_hint( "Players bleedout time increased 10 seconds and current weapons used in laststand");
 
 					if( player usebuttonpressed() && !(player.has_DD) && ( player.score >= level.DDprice ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
@@ -1168,6 +1207,7 @@ VictoriousT()
 				if( distance( self.origin, player.origin ) <= 60 ) 
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Victorious Tortoise [Cost : 2500] " );
+                    player thread machine_lower_hint( "Players shield block damage from all directions when in use.");
 
 					if( player usebuttonpressed() && !(player.has_tortoise) && ( player.score >= level.VTprice ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
@@ -1205,6 +1245,7 @@ echerry()
 				if( distance( self.origin, player.origin ) <= 60 ) 
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Electric Cherry [Cost : 2000] " );
+                    player thread machine_lower_hint( "It creates an electric shockwave around the player whenever they reload" );
 
 					if( player usebuttonpressed() && !(player.has_cherry) && ( player.score >= level.cherrycost ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
@@ -1242,7 +1283,7 @@ wwine()
 				if( distance( self.origin, player.origin ) <= 60 ) 
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Widow's Wine [Cost : 4000] " );
-					//player thread machine_lower_hint( "info text" );
+                    player thread machine_lower_hint( "Player damages zombies around player and grenades are upgraded" );
 					if( player usebuttonpressed() && !(player.has_wine) && ( player.score >= level.wwcost ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
 						player.has_wine = 1;
@@ -1279,6 +1320,7 @@ Ethereal_Razor()
 				if( distance( self.origin, player.origin ) <= 60 ) 
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Ethereal Razor [Cost : 4000] " );
+                    player thread machine_lower_hint( "Players melee attacks does extra damage and restore a small amount of health.");
 
 					if( player usebuttonpressed() && !(player.has_razor) && ( player.score >= level.ERprice ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
@@ -1315,6 +1357,7 @@ mulekick()
 				if( distance( self.origin, player.origin ) <= 60 ) 
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Mule Kick [Cost : 4000] " );
+                    player thread machine_lower_hint( "Enables additional primary weapon slot for player " );
 
 					if( player usebuttonpressed() && !(player hasperk( "specialty_additionalprimaryweapon" )) && ( player.score >= level.t3guncost ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
@@ -1554,6 +1597,8 @@ drawshader_and_shadermove(perk, custom) // made by 2 Millimeter Nahkampfwächter
 			self takeweapon( self get_player_lethal_grenade() );
 			self set_player_lethal_grenade( "sticky_grenade_zm" );
 			self giveweapon("sticky_grenade_zm");
+			self thread ww_nades();
+
             break;
         case "Ethereal_Razor":
             self.perk7back = self drawshader( "specialty_marathon_zombies", x, 350, 24, 24, ( 200, 0, 0 ), 100, 0 );
@@ -2197,4 +2242,16 @@ enable_aim_assist()
 
 stop_spawning()
 {
+}
+
+spawnsm( origin, model, angles )
+{
+    ent = spawn( "script_model", origin );
+    ent setmodel( model );
+    if( IsDefined( angles ) )
+    {
+        ent.angles = angles;
+    }
+    return ent;
+    
 }

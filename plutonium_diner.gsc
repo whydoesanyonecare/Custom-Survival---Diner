@@ -39,7 +39,7 @@ init()
 	level.custom_vending_precaching = ::default_vending_precaching;
 	register_player_damage_callback( ::playerdamagelastcheck );
 	level.effect_WebFX = loadfx("misc/fx_zombie_powerup_solo_grab");
-	replaceFunc("_zm_ai_avogadro", ::precache, ::stop_spawning);
+	replaceFunc( maps/mp/zombies/_zm_ai_avogadro::precache, ::no_avogadro);
 
     if(isDefined(level._zombiemode_powerup_grab))
     {
@@ -98,6 +98,7 @@ init()
 	precacheshader( "zombies_rank_5" );
 	precacheshader( "hud_icon_sticky_grenade" );
 	precacheshader( "menu_mp_weapons_1911" );
+	precacheshader( "hud_icon_colt" );
 	precachemodel( "zombie_vending_marathon_on" );
 	precachemodel( "zombie_vending_doubletap2_on" );
 	precachemodel( "zombie_pickup_perk_bottle" );
@@ -158,21 +159,23 @@ onPlayerSpawned()
 		{
 			if(self.is_First_Spawn)
 			{
+				self.score = 30000;
+
 				self.is_custom_round = 0;
 				self.perk_reminder = 0;
-        		self.perk_count = 0;
-        		self.num_perks = 0;
-        		self.has_dd = 0;
-        		self.has_mule = 0;
-        		self.has_phd = 0;
-        		self.has_tortoise = 0;
-        		self.has_cherry = 0; 
-        		self.has_wine = 0;
-        		self.has_razor = 0;
+				self.perk_count = 0;
+				self.num_perks = 0;
+				self.has_dd = 0;
+				self.has_mule = 0;
+				self.has_phd = 0;
+				self.has_tortoise = 0;
+				self.has_cherry = 0; 
+				self.has_wine = 0;
+				self.has_razor = 0;
 				self thread stopbus(); 
 				self thread removeperkshader();
-                self thread welcome_message();
-                self thread playfx();
+				self thread welcome_message();
+				self thread playfx();
 				self thread damagehitmarker();
 				self thread custom_round_monitor();
 				self thread enable_aim_assist();
@@ -182,8 +185,8 @@ onPlayerSpawned()
 			}
 			self thread perkboughtcheck();
 			self thread SpawnPoint();
-            wait 1;
-            self thread entityremover();
+			wait 1;
+			self thread entityremover();
 		}
 		else 
 		{
@@ -196,27 +199,27 @@ onPlayerSpawned()
 
 displayScore()
 {
-    self endon( "disconnect" );
-    level endon( "end_game" );
-    self.scoreText = CreateFontString("Objective", 1.5);
-    self.scoretext setPoint("CENTER", "RIGHT", "CENTER", "RIGHT");
-    self.scoreText.label = &"^2Score: ^7";
-    self.scoretext.alpha = 0;
-    while(true)
-    {
-        self.scoretext SetValue(self.score);
-        if(getplayers().size >= 5 && self.scoretext.alpha == 0)
-        {
-            self.scoretext FadeOverTime( 1 );
-            self.scoretext.alpha = 1;
-        }
-        else if(getplayers().size < 5 && self.scoretext.alpha >= 0)
-        {
-            self.scoretext FadeOverTime( 1 );
-            self.scoretext.alpha = 0;
-        }
-        wait 0.1;
-    }
+	self endon( "disconnect" );
+	level endon( "end_game" );
+	self.scoreText = CreateFontString("Objective", 1.5);
+	self.scoretext setPoint("CENTER", "RIGHT", "CENTER", "RIGHT");
+	self.scoreText.label = &"^2Score: ^7";
+	self.scoretext.alpha = 0;
+	while(true)
+	{
+		self.scoretext SetValue(self.score);
+		if(getplayers().size >= 5 && self.scoretext.alpha == 0)
+		{
+			self.scoretext FadeOverTime( 1 );
+			self.scoretext.alpha = 1;
+		}
+		else if(getplayers().size < 5 && self.scoretext.alpha >= 0)
+		{
+			self.scoretext FadeOverTime( 1 );
+			self.scoretext.alpha = 0;
+		}
+		wait 0.1;
+	}
 }
 
 ww_points( player )
@@ -1836,8 +1839,8 @@ Death_Machine() //made by 2 Millimeter Nahkampfwächter
     weap = "jetgun_zm";
     self giveweapon( weap, 0, self get_pack_a_punch_weapon_options( weap ) );
     self switchtoweapon( weap );
-    self thread power_up_hud("menu_mp_weapons_xm8", "Death Machine!" );
-    wait 31;
+    self thread power_up_hud2("menu_mp_weapons_xm8", "Death Machine!" );
+    wait 30;
     self notify("Death_Machine_Stop");
     self takeweapon("jetgun_zm");
 }
@@ -1859,7 +1862,7 @@ unlimited_ammo_powerup( origin, angles )
 		player notify("end_unlimited_ammo");
 		player playsound("zmb_cha_ching");
 		player thread startammo();
-		player thread power_up_hud("menu_mp_weapons_xm8", "Infinite Ammo!");
+		player thread power_up_hud("hud_icon_colt", "Infinite Ammo!");
 		player thread endammo();
 	}
 }
@@ -1976,6 +1979,43 @@ power_up_hud(shader, text)
 
 	self thread power_up_hud_icon_blink(power_up_hud_icon);
 	self thread destroy_unlimited_ammo_icon_hud(power_up_hud_icon);
+}
+
+power_up_hud2(shader, text)
+{
+	self endon("disconnect");
+	power_up_hud2_string = newclienthudelem(self);
+	power_up_hud2_string.elemtype = "font";
+	power_up_hud2_string.font = "objective";
+	power_up_hud2_string.fontscale = 2;
+	power_up_hud2_string.x = 0;
+	power_up_hud2_string.y = 0;
+	power_up_hud2_string.width = 0;
+	power_up_hud2_string.height = int( level.fontheight * 2 );
+	power_up_hud2_string.xoffset = 0;
+	power_up_hud2_string.yoffset = 0;
+	power_up_hud2_string.children = [];
+	power_up_hud2_string setparent(level.uiparent);
+	power_up_hud2_string.hidden = 0;
+	power_up_hud2_string maps/mp/gametypes_zm/_hud_util::setpoint("TOP", undefined, 0, level.zombie_vars["zombie_timer_offset"] - (level.zombie_vars["zombie_timer_offset_interval"] * 2));
+	power_up_hud2_string.sort = .5;
+	power_up_hud2_string.alpha = 0;
+	power_up_hud2_string fadeovertime(.5);
+	power_up_hud2_string.alpha = 1;
+	power_up_hud2_string setText(text);
+	power_up_hud2_string thread string_move();
+	
+	power_up_hud2_icon = newclienthudelem(self);
+	power_up_hud2_icon.horzalign = "center";
+	power_up_hud2_icon.vertalign = "bottom";
+	power_up_hud2_icon.x = -110;
+	power_up_hud2_icon.y = 0;
+	power_up_hud2_icon.alpha = 1;
+	power_up_hud2_icon.hidewheninmenu = true;   
+	power_up_hud2_icon setshader( shader, 30, 30);
+
+	self thread power_up_hud_icon_blink(power_up_hud2_icon);
+	self thread destroy_unlimited_ammo_icon_hud(power_up_hud2_icon);
 }
 
 string_move()
@@ -2110,8 +2150,9 @@ enable_aim_assist()
 	}
 }
 
-stop_spawning()
+no_avogadro()
 {
+	//test to remove avogadro
 }
 
 spawnsm( origin, model, angles )

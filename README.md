@@ -5,3 +5,5 @@
 -custom rounds
 
 -shootable easteregg
+
+-controller aim assist

@@ -36,7 +36,6 @@ init()
 	level thread setdvars();
 
 	level.zombie_last_stand = ::LastStand;
-	level.callbackPlayerDamage = ::callbackPlayerDamage;
 	level.custom_vending_precaching = ::default_vending_precaching;
 	register_player_damage_callback( ::playerdamagelastcheck );
 	level.effect_WebFX = loadfx("misc/fx_zombie_powerup_solo_grab");
@@ -95,11 +94,9 @@ init()
 	precacheshader( "zombies_rank_2" );
 	precacheshader( "zombies_rank_4" );
 	precacheshader( "menu_mp_weapons_xm8" );
-    precacheshader( "perks_drank" );
 	precacheshader( "killiconheadshot" );
 	precacheshader( "zombies_rank_5" );
 	precacheshader( "hud_icon_sticky_grenade" );
-    precacheshader( "total_shots" );
 	precacheshader( "menu_mp_weapons_1911" );
 	precachemodel( "zombie_vending_marathon_on" );
 	precachemodel( "zombie_vending_doubletap2_on" );
@@ -113,9 +110,7 @@ init()
 	precachemodel( "t5_foliage_tree_burnt03" );
 	precachemodel( "collision_geo_256x256x10_standard" );
 	precachemodel( "zombie_teddybear" );
-	precachemodel( "zombie_perk_bottle_jugg" );
 	precachemodel( "veh_t6_civ_bus_zombie" );
-	precachemodel( "p6_zm_keycard" );
 	precachemodel( "veh_t6_civ_bus_zombie_roof_hatch" );
 	precachemodel( "zombie_z_money_icon" );
 	precachemodel( "veh_t6_civ_movingtrk_cab_dead" );
@@ -133,14 +128,14 @@ onPlayerConnect()
     {
         level waittill("connected", player);
         player thread onPlayerSpawned();
-        //player thread visuals();
+        player thread visuals();
 		setdvar( "ui_errorMessage", "^9Thank you for playing this Custom Survival Map");
 		setdvar( "ui_errorTitle", "^1Diner" );
 
     }
 }
 
-/*visuals()
+visuals()
 {
 	self setClientDvar("r_fog", 0);
 	self setClientDvar("r_dof_enable", 0);
@@ -150,7 +145,7 @@ onPlayerConnect()
 	self setClientDvar("r_lodScaleSkinned", 1);
 	self useservervisionset(1);
 	self setvisionsetforplayer("remote_mortar_enhanced", 0);
-}*/
+}
 
 onPlayerSpawned()
 {
@@ -185,7 +180,6 @@ onPlayerSpawned()
 				self thread enable_aim_assist();
 				level thread OnGameEndedHint(self);
 				self thread displayScore();
-
 				self.is_First_Spawn = 0;
 			}
 			self thread perkboughtcheck();
@@ -234,7 +228,7 @@ ww_points( player )
 		self maps/mp/zombies/_zm_utility::set_zombie_run_cycle("walk");
         player maps/mp/zombies/_zm_score::add_to_player_score( 10 );
         PlayFXOnTag(level.effect_WebFX,self,"j_spineupper");
-        self doDamage(200, (0, 0, 0));
+        self doDamage(150, (0, 0, 0));
         wait 1;
     }
 }
@@ -276,7 +270,8 @@ ww_nades() // made by 2 Millimeter Nahkampfwächter
     }
 }
 
-playerdamagelastcheck( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime ){
+playerdamagelastcheck( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime )
+{
     if(self.has_wine)
 	{
           if(isDefined( eAttacker.is_zombie ) && eattacker.is_zombie )
@@ -284,9 +279,11 @@ playerdamagelastcheck( einflictor, eattacker, idamage, idflags, smeansofdeath, s
             zombies = getaiarray(level.zombie_team);
             grenades = self get_player_lethal_grenade();
             grenade_count = self getweaponammoclip(grenades);
-            if(grenade_count > 0){
+            if(grenade_count > 0)
+			{
                 self setweaponammoclip(grenades, (grenade_count - 1));
-                foreach(zombie in zombies){
+                foreach(zombie in zombies)
+				{
                     if(distance(zombie.origin, self.origin) < 150)
 					{
                         zombie thread ww_points( self );
@@ -297,11 +294,6 @@ playerdamagelastcheck( einflictor, eattacker, idamage, idflags, smeansofdeath, s
             }
         }
     }
-    return idamage;
-}
-
-callbackPlayerDamage( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime, boneindex )
-{
 	if(self.is_custom_round) 
 	{
 		if(level.round_number > 6)
@@ -324,69 +316,7 @@ callbackPlayerDamage( einflictor, eattacker, idamage, idflags, smeansofdeath, sw
 			}
 		}
 	}
-	if ( isDefined( eattacker ) && isplayer( eattacker ) && eattacker.sessionteam == self.sessionteam && !eattacker hasperk( "specialty_noname" ) && isDefined( self.is_zombie ) && !self.is_zombie )
-	{
-		self process_friendly_fire_callbacks( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime, boneindex );
-		if ( self != eattacker )
-		{
-			return;
-		}
-		else if ( smeansofdeath != "MOD_GRENADE_SPLASH" && smeansofdeath != "MOD_GRENADE" && smeansofdeath != "MOD_EXPLOSIVE" && smeansofdeath != "MOD_PROJECTILE" && smeansofdeath != "MOD_PROJECTILE_SPLASH" && smeansofdeath != "MOD_BURNED" && smeansofdeath != "MOD_SUICIDE" )
-		{
-			return;
-		}
-	}
-	if ( is_true( level.pers_upgrade_insta_kill ) )
-	{
-		self maps/mp/zombies/_zm_pers_upgrades_functions::pers_insta_kill_melee_swipe( smeansofdeath, eattacker );
-	}
-	if ( isDefined( self.overrideplayerdamage ) )
-	{
-		idamage = self [[ self.overrideplayerdamage ]]( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime );
-	}
-	else if ( isDefined( level.overrideplayerdamage ) )
-	{
-		idamage = self [[ level.overrideplayerdamage ]]( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime );
-	}
-	if ( is_true( self.magic_bullet_shield ) )
-	{
-		maxhealth = self.maxhealth;
-		self.health += idamage;
-		self.maxhealth = maxhealth;
-	}
-	if ( isDefined( self.divetoprone ) && self.divetoprone == 1 )
-	{
-		if ( smeansofdeath == "MOD_GRENADE_SPLASH" )
-		{
-			dist = distance2d( vpoint, self.origin );
-			if ( dist > 32 )
-			{
-				dot_product = vectordot( anglesToForward( self.angles ), vdir );
-				if ( dot_product > 0 )
-				{
-					idamage = int( idamage * 0.5 );
-				}
-			}
-		}
-	}
-	if ( isDefined( level.prevent_player_damage ) )
-	{
-		if ( self [[ level.prevent_player_damage ]]( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime ) )
-		{
-			return;
-		}
-	}
-	idflags |= level.idflags_no_knockback;
-	if ( idamage > 0 && shitloc == "riotshield" )
-	{
-		shitloc = "torso_upper";
-	}
-	self finishplayerdamagewrapper( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime, boneindex );
-}
-
-finishplayerdamagewrapper( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime, boneindex ) 
-{
-	self finishplayerdamage( einflictor, eattacker, idamage, idflags, smeansofdeath, sweapon, vpoint, vdir, shitloc, psoffsettime, boneindex );
+    return idamage;
 }
 
 //----------CUSTOM_ROUNDS-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -697,13 +627,12 @@ teddys()
 		{
 			level.teddysCollected++;
 			iprintlnbold("Teddys [" + level.teddysCollected + "/10]");
-			self playsound("mus_raygun_stinger");
 			self delete();
 			if (level.teddysCollected >= level.teddysNeeded)
 			{
 				self thread maps/mp/zombies/_zm_audio_announcer::leaderdialog( "boxmove" );
 				wait 2;
-				iprintlnbold("^9Rooftop Opened");
+				iprintlnbold("^2Rooftop Opened");
                 buildbuildable( "dinerhatch", 1 );
 
                 //add something to roof
@@ -739,7 +668,7 @@ init_custom_map()
 	wallweapons( "emp_grenade_zm", ( -4758.28, -7782, -16.162 ), ( 0, 45, 0 ), 1000 );
 	wallweapons( "cymbal_monkey_zm", ( -4760.28, -7860, -20.162 ), ( 0, 290, 0 ), 4000 );
 	wallweapons( "claymore_zm", ( -5150.28, -7808, -11.162 ), ( 90, 45, 0 ), 1000 );
-    wallweapons2( "bowie_knife_zm", ( -5439.01, -7773, -13.002 ), ( 0, 225, 0 ), 3000 );
+    wallweapons( "bowie_knife_zm", ( -5439.01, -7773, -13.002 ), ( 0, 225, 0 ), 3000 );
     shootable( ( -4690.28, -7282, -63.5062 ), (0, 180, 0) );
     shootable( ( -5305.28, -6550, -35.5062 ), (0, -35, 0) ); 
     shootable( ( -5371.28, -7379, 300 ), (0, 80, 0) );
@@ -793,7 +722,6 @@ collision( script, pos, model, angles, type )
 	{
 		col thread perksdtp();
 		col thread play_fx( "doubletap_light" );
-
 	}
 	if( type == "jugg" )
 	{
@@ -1133,7 +1061,6 @@ PHD_Flopper()
 				{
 					player thread machine_hint( "Hold [{+usereload}] For PHD Flopper [Cost : 2000] " );
                     player thread machine_lower_hint( "Explosion and fall damage ignored also player creates explosion when dive to prone." );
-
 					if( player usebuttonpressed() && !(player.has_phd) && ( player.score >= level.phdcost ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
 						player.has_phd = 1;
@@ -1171,7 +1098,6 @@ DownersD()
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Downer's Delight [Cost : 2500] " );
                     player thread machine_lower_hint( "Players bleedout time increased 10 seconds and current weapons used in laststand");
-
 					if( player usebuttonpressed() && !(player.has_DD) && ( player.score >= level.DDprice ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
 						player.has_DD = 1;
@@ -1208,7 +1134,6 @@ VictoriousT()
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Victorious Tortoise [Cost : 2500] " );
                     player thread machine_lower_hint( "Players shield block damage from all directions when in use.");
-
 					if( player usebuttonpressed() && !(player.has_tortoise) && ( player.score >= level.VTprice ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
 						player.has_tortoise = 1;
@@ -1246,7 +1171,6 @@ echerry()
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Electric Cherry [Cost : 2000] " );
                     player thread machine_lower_hint( "It creates an electric shockwave around the player whenever they reload" );
-
 					if( player usebuttonpressed() && !(player.has_cherry) && ( player.score >= level.cherrycost ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
 						player.has_cherry = 1;
@@ -1283,7 +1207,7 @@ wwine()
 				if( distance( self.origin, player.origin ) <= 60 ) 
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Widow's Wine [Cost : 4000] " );
-                    player thread machine_lower_hint( "Player damages zombies around player and grenades are upgraded" );
+                    player thread machine_lower_hint( "Damages zombies around player when touched and grenades are upgraded" );
 					if( player usebuttonpressed() && !(player.has_wine) && ( player.score >= level.wwcost ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
 						player.has_wine = 1;
@@ -1321,7 +1245,6 @@ Ethereal_Razor()
 				{
 					player thread machine_hint( "Hold [{+usereload}] For Ethereal Razor [Cost : 4000] " );
                     player thread machine_lower_hint( "Players melee attacks does extra damage and restore a small amount of health.");
-
 					if( player usebuttonpressed() && !(player.has_razor) && ( player.score >= level.ERprice ) && !(self.lock) && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
 					{
 						player.has_razor = 1;
@@ -1598,7 +1521,6 @@ drawshader_and_shadermove(perk, custom) // made by 2 Millimeter Nahkampfwächter
 			self set_player_lethal_grenade( "sticky_grenade_zm" );
 			self giveweapon("sticky_grenade_zm");
 			self thread ww_nades();
-
             break;
         case "Ethereal_Razor":
             self.perk7back = self drawshader( "specialty_marathon_zombies", x, 350, 24, 24, ( 200, 0, 0 ), 100, 0 );
@@ -1735,7 +1657,7 @@ start_er()
 			{
                 if( distance( self.origin, zombie.origin ) <= 90 )
 				{
-                    zombie dodamage(500, (0, 0, 0));//if you want you can make like damage in percent
+                    zombie dodamage(400, (0, 0, 0));
                     if(zombie.health <= 0)
 					{
                         self maps/mp/zombies/_zm_score::add_to_player_score( 100 );
@@ -1833,14 +1755,6 @@ wallweapons( weapon, origin, angles, cost )
 
 }
 
-wallweapons2( weapon, origin, angles, cost )
-{
-	wallweaponx = spawnentity( "script_model", getweaponmodel( weapon ), origin, angles + ( 0, 50, 0 ) );
-	wallweaponx thread wallweaponmonitorbox2( weapon, cost );
-
-}
-
-
 pile_of_emp( weapon, origin, angles, cost )
 {
 	wallweaponx = spawnentity( "script_model", getweaponmodel( weapon ), origin, angles + ( 0, 50, 0 ) );
@@ -1868,7 +1782,6 @@ wallweaponmonitorbox( weapon, cost )
             if( distance( self.origin, player.origin ) <= 55 )
             {
                 player thread machine_hint("Hold [{+usereload}] For Buy " + ( self.weapx + ( " [Cost: " + ( self.cost + "]") ) ) );
-                wait 0.3;
                 if( player usebuttonpressed() && !(player hasWeapon(self.curweap)) && player.score >= self.cost && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
                 {
                     player playsound( "zmb_cha_ching" );
@@ -1890,45 +1803,6 @@ wallweaponmonitorbox( weapon, cost )
     }
 }
 
-wallweaponmonitorbox2( weapon, cost )
-{
-	self endon( "game_ended" );
-	self.curweap = weapon;
-	self.weapx = get_weapon_display_name( self.curweap );
-	self.cost = cost;
-	self.lockedweap = 0;
-	while( 1 )
-	{
-		foreach( player in level.players )
-		{
-			if( distance( self.origin, player.origin ) <= 55 )
-			{
-				player thread machine_hint("Hold [{+usereload}] For Buy " + ( self.weapx + ( " [Cost: " + ( self.cost + "]") ) ) );
-				wait 0.3;
-				if( player usebuttonpressed() && !(self.lockedweap) && !(player.hasweapon) && player.score >= self.cost && !player maps/mp/zombies/_zm_laststand::player_is_in_laststand())
-				{
-					player.hasweapon = 1;
-					player playsound( "zmb_cha_ching" );
-					self.lockedweap = 1;
-					player.score -= self.cost;
-					player thread weapon_give( self.curweap, 0, 1 );
-					player iprintln( "^2" + ( self.weapx + "Buy" ) );
-                    wait 3;
-                    self.lockedweap = 0;
-				}
-				else
-				{
-					if( player usebuttonpressed() && player.score < self.cost )
-					{
-						player maps/mp/zombies/_zm_audio::create_and_play_dialog( "general", "no_money_weapon" );
-					}
-				}
-			}
-		}
-		wait 0.1;
-	}
-
-}
 
 custom_powerup_grab(s_powerup, e_player)
 {
@@ -2033,7 +1907,6 @@ machine_lower_hint( text )
 	machine_lower_hint_string.hidden = 0;
 	machine_lower_hint_string.sort = .5;
 	machine_lower_hint_string.alpha = 0;
-	machine_lower_hint_string fadeovertime(.5);
 	machine_lower_hint_string.alpha = 1;
 	machine_lower_hint_string setText( text ); 
 	machine_lower_hint_string thread machine_string();
@@ -2041,7 +1914,6 @@ machine_lower_hint( text )
 
 machine_string()
 {
-	wait .5;
 	wait 0.25;
 	self destroy();
 }

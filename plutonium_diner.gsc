@@ -29,98 +29,105 @@
 #include maps/mp/zm_transit;
 init()
 {
-	level.unlimited_ammo_duration = 30;
-	level thread drawZombiesCounter();
-	level thread onPlayerConnect();
-    level thread turnonpower();
-	level thread setdvars();
+	if( getdvar( "mapname" ) == "zm_transit" && getdvar ( "g_gametype")  == "zclassic" )
+	{
+		
+		include_zombie_powerup("death_machine");
+		add_zombie_powerup("death_machine", "zombie_teddybear", &"ZOMBIE_POWERUP_DEATH_MACHINE", ::func_should_always_drop, 1, 0, 0);
+		powerup_set_can_pick_up_in_last_stand("death_machine", 1);
 
-	level.zombie_last_stand = ::LastStand;
-	level.custom_vending_precaching = ::default_vending_precaching;
-	register_player_damage_callback( ::playerdamagelastcheck );
-	level.effect_WebFX = loadfx("misc/fx_zombie_powerup_solo_grab");
-	replaceFunc( maps/mp/zombies/_zm_ai_avogadro::precache, ::no_avogadro);
+		include_zombie_powerup("unlimited_ammo");
+		add_zombie_powerup("unlimited_ammo", "T6_WPN_AR_GALIL_WORLD", &"ZOMBIE_POWERUP_UNLIMITED_AMMO", ::func_should_always_drop, 0, 0, 0);
+		powerup_set_can_pick_up_in_last_stand("unlimited_ammo", 1);
 
-    if(isDefined(level._zombiemode_powerup_grab))
-    {
-        level.original_zombiemode_powerup_grab = level._zombiemode_powerup_grab;
-    }
-	level._zombiemode_powerup_grab = ::custom_powerup_grab;
+		include_zombie_powerup("zombie_cash");
+		add_zombie_powerup("zombie_cash", "zombie_z_money_icon", &"ZOMBIE_POWERUP_ZOMBIE_CASH", ::func_should_always_drop, 1, 0, 0); 
+		powerup_set_can_pick_up_in_last_stand("zombie_cash", 1);
 
-	level.player_out_of_playable_area_monitor = 0;
-	level.custom_gunlist_upgraded = array("ak74u_upgraded_zm","mp5k_upgraded_zm","qcw05_upgraded_zm","m14_upgraded_zm","m16_upgraded_zm","saritch_upgraded_zm","xm8_upgraded_zm","type95_upgraded_zm","tar21_upgraded_zm","870mcs_upgraded_zm","rottweil72_upgraded_zm","saiga12_upgraded_zm","srm1216_upgraded_zm","galil_upgraded_zm","fnfal_upgraded_zm","rpd_upgraded_zm","hamr_upgraded_zm","dsr50_upgraded_zm","barretm82_upgraded_zm","m1911_upgraded_zm","python_upgraded_zm","judge_upgraded_zm","kard_upgraded_zm","fiveseven_upgraded_zm","beretta93r_upgraded_zm","fivesevendw_upgraded_zm","usrpg_upgraded_zm","m32_upgraded_zm","ray_gun_upgraded_zm","knife_ballistic_upgraded_zm","raygun_mark2_upgraded_zm","knife_ballistic_bowie_upgraded_zm");
-	level.custom_gunlist = array("ak74u_zm","mp5k_zm","qcw05_zm","m14_zm","m16_zm","saritch_zm","xm8_zm","type95_zm","tar21_zm","870mcs_zm","rottweil72_zm","saiga12_zm","srm1216_zm","galil_zm","fnfal_zm","rpd_zm","hamr_zm","dsr50_zm","barretm82_zm","m1911_zm","python_zm","judge_zm","kard_zm","fiveseven_zm","beretta93r_zm","fivesevendw_zm","usrpg_zm","m32_zm","ray_gun_zm","knife_ballistic_zm","raygun_mark2_zm","knife_ballistic_bowie_zm");
+		precachemodel( "p6_zm_screecher_hole" );
+		precachemodel( "p_cub_door01_wood_fullsize" );
+		precachemodel( "p_rus_door_white_window_plain_left" );
+		precachemodel( "zombie_vending_jugg_on" );
+		precachemodel( "zombie_vending_revive_on" );
+		precachemodel( "zombie_vending_sleight_on" );
+		precachemodel( "zombie_vending_tombstone_on" );
+		precachemodel( "zombie_vending_three_gun_on" );
+		precacheshader( "zombies_rank_1" );
+		precacheshader( "zombies_rank_3" );
+		precacheshader( "zombies_rank_2" );
+		precacheshader( "zombies_rank_4" );
+		precacheshader( "menu_mp_weapons_xm8" );
+		precacheshader( "killiconheadshot" );
+		precacheshader( "zombies_rank_5" );
+		precacheshader( "hud_icon_sticky_grenade" );
+		precacheshader( "menu_mp_weapons_1911" );
+		precacheshader( "hud_icon_colt" );
+		precachemodel( "zombie_vending_marathon_on" );
+		precachemodel( "zombie_vending_doubletap2_on" );
+		precachemodel( "zombie_pickup_perk_bottle" );
+		precachemodel( "zm_collision_perks1" );
+		precachemodel( "p6_anim_zm_buildable_pap_on" );
+		precachemodel( "collision_player_wall_512x512x10" );
+		precachemodel( "collision_physics_512x512x10" );
+		precachemodel( "collision_player_wall_256x256x10" );
+		precacheshader( "damage_feedback" );
+		precachemodel( "t5_foliage_tree_burnt03" );
+		precachemodel( "collision_geo_256x256x10_standard" );
+		precachemodel( "zombie_teddybear" );
+		precachemodel( "veh_t6_civ_bus_zombie" );
+		precachemodel( "veh_t6_civ_bus_zombie_roof_hatch" );
+		precachemodel( "zombie_z_money_icon" );
+		precachemodel( "veh_t6_civ_movingtrk_cab_dead" );
 
-	level.perk_purchase_limit = 20;
-	level.papprice = 5000;
-	level.juggprice = 2500;
-	level.doubletapcost = 2000;
-	level.squickrevivecost = 500;
-    level.mquickrevivecost = 1500;
-	level.tombcost = 2000;
-	level.stupcost = 2000;
-    level.phdcost = 2000;
-    level.DDprice = 2500;
-    level.VTprice = 2500;
-    level.cherrycost = 2000;
-	level.wwcost = 4000;
-    level.ERprice = 4000;
-    level.t3guncost = 4000;
+		init_custom_map();
+		level turnonpower();
+		level setdvars();
 
-	init_custom_map();
+		level.zombie_last_stand = ::LastStand;
+		level.custom_vending_precaching = ::default_vending_precaching;
+		register_player_damage_callback( ::playerdamagelastcheck );
+		level.effect_WebFX = loadfx("misc/fx_zombie_powerup_solo_grab");
 
-	include_zombie_powerup("death_machine");
-   	add_zombie_powerup("death_machine", "zombie_teddybear", &"ZOMBIE_POWERUP_DEATH_MACHINE", ::func_should_always_drop, 1, 0, 0);
-	powerup_set_can_pick_up_in_last_stand("death_machine", 1);
+		if(isDefined(level._zombiemode_powerup_grab))
+		{
+			level.original_zombiemode_powerup_grab = level._zombiemode_powerup_grab;
+		}
+		level._zombiemode_powerup_grab = ::custom_powerup_grab;
 
-	include_zombie_powerup("unlimited_ammo");
-   	add_zombie_powerup("unlimited_ammo", "T6_WPN_AR_GALIL_WORLD", &"ZOMBIE_POWERUP_UNLIMITED_AMMO", ::func_should_always_drop, 0, 0, 0);
-	powerup_set_can_pick_up_in_last_stand("unlimited_ammo", 1);
-
-	include_zombie_powerup("zombie_cash");
-   	add_zombie_powerup("zombie_cash", "zombie_z_money_icon", &"ZOMBIE_POWERUP_ZOMBIE_CASH", ::func_should_always_drop, 1, 0, 0); 
-	powerup_set_can_pick_up_in_last_stand("zombie_cash", 1);
-
-	precachemodel( "p6_zm_screecher_hole" );
-    precachemodel( "p_cub_door01_wood_fullsize" );
-    precachemodel( "p_rus_door_white_window_plain_left" );
-	precachemodel( "zombie_vending_jugg_on" );
-	precachemodel( "zombie_vending_revive_on" );
-	precachemodel( "zombie_vending_sleight_on" );
-	precachemodel( "zombie_vending_tombstone_on" );
-	precachemodel( "zombie_vending_three_gun_on" );
-	precacheshader( "zombies_rank_1" );
-	precacheshader( "zombies_rank_3" );
-	precacheshader( "zombies_rank_2" );
-	precacheshader( "zombies_rank_4" );
-	precacheshader( "menu_mp_weapons_xm8" );
-	precacheshader( "killiconheadshot" );
-	precacheshader( "zombies_rank_5" );
-	precacheshader( "hud_icon_sticky_grenade" );
-	precacheshader( "menu_mp_weapons_1911" );
-	precacheshader( "hud_icon_colt" );
-	precachemodel( "zombie_vending_marathon_on" );
-	precachemodel( "zombie_vending_doubletap2_on" );
-	precachemodel( "zombie_pickup_perk_bottle" );
-	precachemodel( "zm_collision_perks1" );
-	precachemodel( "p6_anim_zm_buildable_pap_on" );
-	precachemodel( "collision_player_wall_512x512x10" );
-	precachemodel( "collision_physics_512x512x10" );
-	precachemodel( "collision_player_wall_256x256x10" );
-	precacheshader( "damage_feedback" );
-	precachemodel( "t5_foliage_tree_burnt03" );
-	precachemodel( "collision_geo_256x256x10_standard" );
-	precachemodel( "zombie_teddybear" );
-	precachemodel( "veh_t6_civ_bus_zombie" );
-	precachemodel( "veh_t6_civ_bus_zombie_roof_hatch" );
-	precachemodel( "zombie_z_money_icon" );
-	precachemodel( "veh_t6_civ_movingtrk_cab_dead" );
+		level.custom_gunlist_upgraded = array("ak74u_upgraded_zm","mp5k_upgraded_zm","qcw05_upgraded_zm","m14_upgraded_zm","m16_upgraded_zm","saritch_upgraded_zm","xm8_upgraded_zm","type95_upgraded_zm","tar21_upgraded_zm","870mcs_upgraded_zm","rottweil72_upgraded_zm","saiga12_upgraded_zm","srm1216_upgraded_zm","galil_upgraded_zm","fnfal_upgraded_zm","rpd_upgraded_zm","hamr_upgraded_zm","dsr50_upgraded_zm","barretm82_upgraded_zm","m1911_upgraded_zm","python_upgraded_zm","judge_upgraded_zm","kard_upgraded_zm","fiveseven_upgraded_zm","beretta93r_upgraded_zm","fivesevendw_upgraded_zm","usrpg_upgraded_zm","m32_upgraded_zm","ray_gun_upgraded_zm","knife_ballistic_upgraded_zm","raygun_mark2_upgraded_zm","knife_ballistic_bowie_upgraded_zm");
+		level.custom_gunlist = array("ak74u_zm","mp5k_zm","qcw05_zm","m14_zm","m16_zm","saritch_zm","xm8_zm","type95_zm","tar21_zm","870mcs_zm","rottweil72_zm","saiga12_zm","srm1216_zm","galil_zm","fnfal_zm","rpd_zm","hamr_zm","dsr50_zm","barretm82_zm","m1911_zm","python_zm","judge_zm","kard_zm","fiveseven_zm","beretta93r_zm","fivesevendw_zm","usrpg_zm","m32_zm","ray_gun_zm","knife_ballistic_zm","raygun_mark2_zm","knife_ballistic_bowie_zm");
+		level.player_out_of_playable_area_monitor = 0;
+		level.unlimited_ammo_duration = 30;
+		level.perk_purchase_limit = 20;
+		level.papprice = 5000;
+		level.juggprice = 2500;
+		level.doubletapcost = 2000;
+		level.squickrevivecost = 500;
+		level.mquickrevivecost = 1500;
+		level.tombcost = 2000;
+		level.stupcost = 2000;
+		level.phdcost = 2000;
+		level.DDprice = 2500;
+		level.VTprice = 2500;
+		level.cherrycost = 2000;
+		level.wwcost = 4000;
+		level.ERprice = 4000;
+		level.t3guncost = 4000;
+		level thread entityremover();
+		level thread stopbus(); 
+		level thread drawZombiesCounter();
+		level thread onPlayerConnect();
+		level thread custom_round_monitor();
+		level thread teleport_avogadro();
+	}
 }
 
 setdvars()
 {
 	setdvar( "magic_chest_movable", "0" );
 	setDvar( "scr_screecher_ignore_player", 1 );
+	setdvar( "ui_errorMessage", "^9Thank you for playing this Custom Survival Map");
+	setdvar( "ui_errorTitle", "^1Diner" );
 }
 
 onPlayerConnect()
@@ -129,10 +136,6 @@ onPlayerConnect()
     {
         level waittill("connected", player);
         player thread onPlayerSpawned();
-        player thread visuals();
-		setdvar( "ui_errorMessage", "^9Thank you for playing this Custom Survival Map");
-		setdvar( "ui_errorTitle", "^1Diner" );
-
     }
 }
 
@@ -152,46 +155,33 @@ onPlayerSpawned()
 {
 	self endon( "disconnect" );
 	level endon( "game_ended" );
+	self waittill( "spawned_player" );
+	self.score = 30000;
+	self.perk_reminder = 0;
+	self.perk_count = 0;
+	self.num_perks = 0;
+	self.has_dd = 0;
+	self.has_mule = 0;
+	self.has_phd = 0;
+	self.has_tortoise = 0;
+	self.has_cherry = 0; 
+	self.has_wine = 0;
+	self.has_razor = 0;
+	self thread removeperkshader();
+	self thread damagehitmarker();
+	self thread enable_aim_assist();
+	level thread OnGameEndedHint(self);
+	self thread displayScore();
+	self thread perkboughtcheck();
+	self thread playfx();
+	self visuals();
+	self SpawnPoint();
+	wait 3;
+	self iprintln( "^7Diner - Survival" );
 	for(;;)
 	{
 		self waittill( "spawned_player" );
-		if( getdvar( "mapname" ) == "zm_transit" && getdvar ( "g_gametype")  == "zclassic" )
-		{
-			if(self.is_First_Spawn)
-			{
-				self.is_custom_round = 0;
-				self.perk_reminder = 0;
-				self.perk_count = 0;
-				self.num_perks = 0;
-				self.has_dd = 0;
-				self.has_mule = 0;
-				self.has_phd = 0;
-				self.has_tortoise = 0;
-				self.has_cherry = 0; 
-				self.has_wine = 0;
-				self.has_razor = 0;
-				self thread stopbus(); 
-				self thread removeperkshader();
-				self thread welcome_message();
-				self thread playfx();
-				self thread damagehitmarker();
-				self thread custom_round_monitor();
-				self thread enable_aim_assist();
-				level thread OnGameEndedHint(self);
-				self thread displayScore();
-				self.is_First_Spawn = 0;
-			}
-			self thread perkboughtcheck();
-			self thread SpawnPoint();
-			wait 1;
-			self thread entityremover();
-		}
-		else 
-		{
-			flag_wait( "start_zombie_round_logic" );
-			wait 1;
-			self iprintln( "^1Error! Please play in Tranzit Normal Mode." );
-		}
+		self SpawnPoint();
 	}
 }
 
@@ -220,7 +210,7 @@ displayScore()
 	}
 }
 
-ww_points( player )
+ww_points( player )// made by 2 Millimeter Nahkampfwächter
 {
     for(i = 0; i < 3; i++)
     {
@@ -243,7 +233,7 @@ ww_nade_explosion()// made by 2 Millimeter Nahkampfwächter
     zombies = getaiarray(level.zombie_team);
     foreach( zombie in zombies )
 	{
-        if( distance( zombie.origin, self.origin ) < 250 )
+        if( distance( zombie.origin, self.origin ) < 200 )
 		{
             zombie thread ww_points( self );
         }
@@ -293,7 +283,7 @@ playerdamagelastcheck( einflictor, eattacker, idamage, idflags, smeansofdeath, s
             }
         }
     }
-	if(self.is_custom_round) 
+	if(level.customround == level.round_number) 
 	{
 		if(level.round_number > 6)
 		{
@@ -359,73 +349,37 @@ custom_round_monitor()
 {
 	self endon("disconnect");
 	self endon("game_ended");
-	customround = level.round_number + 4; //randomintrange( 4, 6 );
+	level.customround = level.round_number + 4; //randomintrange( 4, 6 );
 	for(;;)
 	{
-		if( level.round_number == customround ) 
+		level waittill( "between_round_over" );
+		if( level.round_number == level.customround ) 
 		{
-			self.is_custom_round = 1;
-			self thread voice(); 
-			self thread remodel_and_speed();
-			self thread powerupdrop();
-			wait 10;
+			foreach(player in level.players)
+			{
+				player thread hint_text_string("Fetch me their souls!");
+				player playleaderdialogonplayer( "dogstart", self.team, 5 );
+			}
 			//self thread kill_crawlers(); untested
             //self thread kill_outsiders(); untested
-			break;
+			while(level.customround == level.round_number)
+			{
+				foreach( zombie in getAiArray(level.zombie_team) )
+				{
+					if(!isDefined(zombie.remodeled) && !zombie.is_avogadro)
+					{
+						zombie setModel( "c_zom_screecher_fb" );
+						zombie maps/mp/zombies/_zm_utility::set_zombie_run_cycle( "super_sprint" ); 
+					}
+				}
+				wait 0.05;
+			}
+			player = level.players;
+			player[0] specific_powerup_drop("full_ammo", player[0].origin);
+			level waittill( "between_round_over" );
+			level.customround = level.round_number + randomintrange( 4, 7 );
 		}
-	wait 0.5;
 	}
-}
-
-voice()
-{
-	wait 12;
-	self thread hint_text_string("Fetch me their souls!");
-	self thread playleaderdialogonplayer( "dogstart", self.team, 5 );
-}
-
-remodel_and_speed() 
-{
-	self endon("disconnect");
-	self endon("custom_round_over");
-	while(1)
-	{
-		foreach( zombie in getAiArray(level.zombie_team) )
-		if(!isDefined(zombie.remodeled) && !zombie.is_avogadro) 
-		{
-			zombie setModel( "c_zom_screecher_fb" );
-			zombie maps/mp/zombies/_zm_utility::set_zombie_run_cycle( "super_sprint" ); 
-		}
-	wait 0.5;
-	}
-}
-
-powerupdrop()
-{
-	self endon("disconnect");
-	self endon("custom_round_over");
-	wait 20;
-	for(;;)
-	{	
-		zomb = getaiarray( level.zombie_team );
-		if( zomb.size == 1 )
-		{
-			
-			zomb specific_powerup_drop("full_ammo", self.origin);
-			self thread endcustom();
-			break;
-		}	
-	wait 1;
-	}
-}
-
-endcustom()
-{
-	flag_wait( "start_zombie_round_logic" );
-	self notify("custom_round_over");
-	self.is_custom_round = 0;
-	wait 2;
-	self thread custom_round_monitor();
 }
 
 //--END-----CUSTOM_ROUNDS-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -488,12 +442,6 @@ hitmark()
 	}
 }
 
-welcome_message()
-{
-	flag_wait( "start_zombie_round_logic" );
-	wait 1;
-	self iprintln( "^7Diner - Survival" );
-}
 
 SpawnPoint()
 {
@@ -541,8 +489,8 @@ turnonpower()
 
 stopbus()
 {
-	wait 10;
-	self endon( "disconnect" );
+	flag_wait( "initial_blackscreen_passed" );
+	level endon("end_game");
 	while( 1 )
 	{
 		bus = getent( "the_bus", "targetname" );
@@ -566,29 +514,9 @@ stopbus()
 entityremover()
 {
     flag_wait( "start_zombie_round_logic" );
-    wait 3;
-	ents = getentarray();
-	model = strtok( "veh_t6_civ_bus_zombie_cow_catcher,veh_t6_civ_bus_zombie_roof_hatch", "," );
-	index = 0; 
-	while( index < ents.size )
-	{
-		foreach( x in model )
-		{
-			if( IsDefined( ents[ index] ) && x == ents[ index].model )
-			{
-				ents[ index] delete();
-			}
-		}
-		index++;
-	}
-}
-
-setSafeText( text )
-{
-	level.result = level.result + 1;
-	self settext( text );
-	level notify( "textset" );
-
+    wait 5;
+    removebuildable( "dinerhatch" );
+    removebuildable( "cattlecatcher" );
 }
 
 drawZombiesCounter()
@@ -650,9 +578,10 @@ teddys()
 init_custom_map()
 {
 	noncollision( "script_model", (-3890.1, -6650, -59.5062), "collision_player_wall_512x512x10", ( 0, 270, 0 ), "wall" ); 
-	noncollision( "script_model", (-6315.28, -7040, -50.5062 ), "collision_player_wall_512x512x10", ( 0, 270, 0 ), "wall2" ); 
+	noncollision( "script_model", (-6315.28, -7000, -50.5062 ), "collision_player_wall_512x512x10", ( 0, 270, 0 ), "wall2" ); 
 	noncollision( "script_model", ( -6415.28, -6850, 5.5062 ), "veh_t6_civ_movingtrk_cab_dead", ( 0, 280, 0 ), "truck" );
-	collision( "script_model", (-3870.1, -7050, -50.5062), "t5_foliage_tree_burnt03", (-75, 270, 0), "tree" ); 
+	noncollision( "script_model", (-3870.1, -7050, -50.5062), "t5_foliage_tree_burnt03", (-75, 270, 0), "tree" ); 
+	noncollision( "script_model", (-3885.1, -6900, -50.5062), "collision_player_wall_512x512x10", (0, 270, 0), "wall3" ); 
 	collision( "script_model", ( -4590.28, -7539, -62.5062 ), "zombie_vending_jugg_on", ( 0, 270, 0 ), "jugg" ); 
 	collision( "script_model", ( -4173.1, -7750.29, -62.5062 ), "zombie_vending_doubletap2_on", ( 0, 270, 0 ), "DTP" );
 	collision( "script_model", ( -5050.28, -7788, -62.5062 ), "zombie_vending_revive_on", ( 0, 180, 0 ), "revive" );
@@ -680,7 +609,7 @@ init_custom_map()
     shootable( ( -3810.28, -7443, 98.915 ), (0, 180, 0) );
 }
 
-defaulth_vending_precaching()
+default_vending_precaching()
 {
 	level._effect[ "sleight_light" ] = loadfx( "misc/fx_zombie_cola_on" );
 	level._effect[ "tombstone_light" ] = loadfx( "misc/fx_zombie_cola_on" );
@@ -781,6 +710,21 @@ collision( script, pos, model, angles, type )
 	{
 		col thread papweapons();
 	}
+}
+
+removebuildable( buildable )
+{
+    foreach ( stub in level.buildable_stubs )
+    {
+        if ( stub.equipname == buildable )
+        {
+            foreach ( piece in stub.buildablezone.pieces )
+            {
+                piece maps/mp/zombies/_zm_buildables::piece_unspawn();
+            }
+            return;
+        }
+    }
 }
 
 buildbuildable( buildable, craft ) //credit to Jbleezy for this function
@@ -1306,6 +1250,7 @@ mulekick()
 
 }
 
+
 removeperkshader()
 {
 	for(;;)
@@ -1415,6 +1360,9 @@ perkboughtcheck()
 
 drawshader_and_shadermove(perk, custom) // made by 2 Millimeter Nahkampfwächter 
 {
+	if(perk == "break"){
+		return 0;
+	}
     if(custom)
 	{
         self allowProne(false);
@@ -1475,7 +1423,7 @@ drawshader_and_shadermove(perk, custom) // made by 2 Millimeter Nahkampfwächter
         self.perk7back.x = self.perk7back.x + 30;
         self.perk7front.x = self.perk7front.x + 30;
     }
-    switch(perk)
+	switch(perk)
 	{
         case "Downers_Delight":
             self.perk1back = self drawshader( "specialty_marathon_zombies", x, 350, 24, 24, ( 0, 0, 0 ), 100, 0 ); 
@@ -1660,7 +1608,8 @@ start_er()
                     if(zombie.health <= 0)
 					{
                         self maps/mp/zombies/_zm_score::add_to_player_score( 100 );
-                    } 
+						self.kills++;
+					} 
 					else 
 					{
                         self maps/mp/zombies/_zm_score::add_to_player_score( 10 );
@@ -1668,10 +1617,12 @@ start_er()
                 } 
             }
             self.health += 10;
-            if(self.health > self.maxhealth){
+            if(self.health > self.maxhealth)
+			{
                 self.health = self.maxhealth;
             }
-            while(self ismeleeing()){
+            while(self ismeleeing())
+			{
                 wait 0.1;
             }
         }
@@ -2079,7 +2030,7 @@ startammo()
 	self endon("end_unlimited_ammo");
 	for(;;)
 	{
-		wait 0.1;
+		wait 0.05;
 		weapon = self getcurrentweapon();
 		if( weapon != "none" && weapon != "claymore_zm" )
 		{
@@ -2144,13 +2095,8 @@ enable_aim_assist()
 			self.aim_assist_on = 0;
 			wait 3;
 		}
-	wait 0.05;
+	wait 0.1;
 	}
-}
-
-no_avogadro()
-{
-	//test to remove avogadro
 }
 
 spawnsm( origin, model, angles )
@@ -2163,4 +2109,21 @@ spawnsm( origin, model, angles )
     }
     return ent;
     
+}
+
+
+teleport_avogadro()
+{
+	wait 10;
+	for(;;)
+	{	
+		foreach(zombie in getAiArray(level.zombie_team))
+		{
+			if( isDefined( zombie.is_avogadro ) && zombie.is_avogadro )
+			{
+				zombie forceteleport(( 1588.01, 62.551, -61.875 ));
+			}
+		}
+		wait 1;
+	}
 }

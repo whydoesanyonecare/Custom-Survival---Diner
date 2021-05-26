@@ -1,9 +1,9 @@
 # Custom Survival - Diner
 
--custom perks
+- 7 custom perks
 
--custom rounds
+- custom rounds
 
--shootable easteregg
+- shootable easteregg
 
--controller aim assist
+- controller aim assist

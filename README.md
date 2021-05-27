@@ -1,4 +1,6 @@
-# Custom Survival - Diner
+# Custom Survival - Diner - TranZit
+
+**This map uses TranZit**
 
 - 7 custom perks
 

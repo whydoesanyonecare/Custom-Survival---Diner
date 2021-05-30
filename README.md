@@ -1,17 +1,5 @@
 # Custom Survival - Diner - TranZit
 
-**This map uses TranZit**
-
-- 7 custom perks
-
-- custom rounds
-
-- shootable easteregg
-
-- controller aim assist
-
-#Huge Thanks to 2 Millimeter Nahkampfwächter who Helped with this Project.
-
 This map uses TranZit
 
 Installion Guide for Compiled file: https://forum.plutonium.pw/topic/6966/how-to-use-a-mod-menu-without-injecting-loading-gsc-scripts-client-sided
@@ -24,11 +12,11 @@ Custom Power ups:
 
 Custom rounds:
 
-custom electric screecher rounds
+- custom electric screecher rounds
 
 Controller aim assist:
 
-Enable / Disable controller aim assist LB and RB
+- Enable / Disable controller aim assist LB and RB
 
 Custom perk icons are only in correct spot while using 1080p or 720p. in other resolutions perk icons are messed up atm
 
@@ -46,7 +34,9 @@ Custom perk icons are only in correct spot while using 1080p or 720p. in other r
 
 Shootable EasterEgg:
 
-Find And shoot 10 Teddy bears
+- Find And shoot 10 Teddy bears
+
+
 
 REPORT ANY BUGS YOU FIND
 
